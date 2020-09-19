@@ -14,14 +14,27 @@ public class Main {
 
         gateway.on(MessageCreateEvent.class).subscribe(event -> {
             final Message message = event.getMessage();
-            if ("!sigfig".equals(message.getContent())) {
-                final MessageChannel channel = message.getChannel().block();
+            final MessageChannel channel = message.getChannel().block();
+
+            if ("!ping".equals(message.getContent())) {
+
+                long originalMsgTimestamp = message.getTimestamp().toEpochMilli();
+
+                final Message pong = channel.createMessage("Pong!").block();
+                // TODO
+                // Take msg after it's sent, compare timestamps.
+                // Then edit the msg that's sent, edit in the timestamp difference.
+                // Pong! 123ms
+            }
+
+            if ("sigfig".contains(message.getContent())) {
                 channel.createMessage("#FuckSigFigRules!").block();
             }
+
             if ("!bry".equals(message.getContent())) {
-                final MessageChannel channel = message.getChannel().block();
-                for (int i = 0; i < 5; i++) {
-                    channel.createMessage("TEST: " + message.getAuthor().toString());
+
+                for (int i = 0; i < 10; i++) {
+                    // Just a Bry spammer LOL (Sorry dude)
                     channel.createMessage("SPAM <@166022239815204864> ;)").block();
                 }
             }
