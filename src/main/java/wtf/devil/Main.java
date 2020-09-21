@@ -38,6 +38,10 @@ public class Main {
                     channel.createMessage("SPAM <@166022239815204864> ;)").block();
                 }
             }
+            
+            if ("Victor Angel".contains(message.getContent())) {
+                channel.createMessage("<@231814995975995392> ?, Yeah, hes cool").block();
+            }
         });
 
         gateway.onDisconnect().block();
