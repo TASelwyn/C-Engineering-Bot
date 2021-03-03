@@ -21,7 +21,7 @@ public class HelpCommand {
             String activeCommand = Parsers.parseStringToCommand(nonParsedCommand);
             commandTypes module = Parsers.parseStringToCommandModule(activeCommand);
 
-            if (activeCommand != "") {
+            if (!activeCommand.equals("")) {
                 String[] helpDocumentation = commandToHelpDocumentation(module, activeCommand);
                 embed.addField("Basic Documentation for " + activeCommand, helpDocumentation[0], false);
                 embed.addField("Example usage", helpDocumentation[1], false);

@@ -27,7 +27,7 @@ dependencies {
 }
 
 application {
-    // Required to move the output scripts to the root fil
+    // Required to move the output scripts to the root folder
     executableDir = ""
     mainClass.set("wtf.devil.cengbot.Main")
 }

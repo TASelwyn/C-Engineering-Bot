@@ -23,7 +23,7 @@ Example usage: c.pay @Thomas 500k
 - **`beg`**
   Pretend to be a beggar and get some cash.
 - **`rich`**
-  Sees the leaderboard of richest people on the server.
+  Sees the leaderboard of the richest people on the server.
 - **`rob`**
   Attempts to rob the mentioned user.
 - **`deposit`**
@@ -32,6 +32,10 @@ Example usage: c.pay @Thomas 500k
   Withdraw money from your vault into cash.
 - **`pay`**
   Give a user some cash.
+
+### Calculators
+- **`parallel`**
+  Parallel resistance calculator.
   
 ### Cheat/Admin Commands
 - **`cheat`**
@@ -47,7 +51,7 @@ class.
 ## Building the bot for production
 
 To get a distributable package you run `gradlew distZip`. The created zip is located
-at `build/distributions/cengbot-0.0.4-DEV.zip` and contains all necessary things to run the bot, except the token. The token goes in `data/config.json`, which get's generated on first launch. 
+at `build/distributions/cengbot-0.0.4-DEV.zip` and contains all necessary things to run the bot, except the token. The token goes in `data/config.json`, a file that is generated on first launch. 
 Take a look at the [build.gradle.kts](https://github.com/TASelwyn/C-Engineering-Bot/blob/master/build.gradle.kts) file for additional build parameters. 
 
 ## Running the bot for production
