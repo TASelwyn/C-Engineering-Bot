@@ -21,17 +21,16 @@ public class Main {
         setLogProperty();
 
         String discordToken = new Config().getToken();
-
-        //.setRecommendedTotalShards().join()
+        assert(discordToken != null);
         if (databaseTestConnection()) {
-            if ((discordToken != null) && discordToken.length() == 59) {
+            if (discordToken.length() == 70) {
                 new DiscordApiBuilder()
                         .setToken(discordToken)
                         .setAllIntents()
 
-                        .setTotalShards(2)
-                        //.loginAllShards()
-                        .loginShards(0)
+                        .setTotalShards(1)
+                        //.setRecommendedTotalShards().join()
+                        .loginAllShards()
 
                         .forEach(shardFuture -> shardFuture
                                 .thenAcceptAsync(Main::onShardLogin)
@@ -40,7 +39,7 @@ public class Main {
 
                 logger.info("Bot successfully started.");
 
-            } else if (!discordToken.isEmpty() && discordToken.length() != 59) {
+            } else if (discordToken.isEmpty()) {
                 logger.error("Token supplied is invalid. Please check the token in config.json");
             } else {
                 logger.error("No discord token supplied. Please enter a token in config.json");

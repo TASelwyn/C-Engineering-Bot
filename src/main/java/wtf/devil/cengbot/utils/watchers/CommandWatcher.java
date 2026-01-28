@@ -31,7 +31,7 @@ public class CommandWatcher implements MessageCreateListener {
 
             commandTypes commandModule = parseStringToCommandModule(command);
 
-            if (!command.equals("") && commandModule != null) {
+            if (!command.isEmpty() && commandModule != null) {
                 new CommandManager(commandModule, event, command, params, startTimestamp);
             } else {
                 event.getChannel().sendMessage("Unknown command. Check `c.help`");

@@ -1,4 +1,4 @@
-import org.gradle.api.JavaVersion.VERSION_11
+import org.gradle.api.JavaVersion.VERSION_21
 
 plugins {
     application
@@ -9,7 +9,9 @@ version = "0.0.4-DEV"
 description = "C-Eng Bot by Devil"
 
 java {
-    sourceCompatibility = VERSION_11
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    targetCompatibility = VERSION_21
+    sourceCompatibility = VERSION_21
 }
 
 // Javacord is on Maven central
@@ -19,11 +21,12 @@ repositories {
 
 // The dependencies of the bot. Javacord and Log4J for logging
 dependencies {
-    implementation("org.javacord:javacord:3.1.2")
-    implementation("org.apache.logging.log4j:log4j-api:2.14.0")
-    implementation("com.google.code.gson:gson:2.8.6")
-    runtimeOnly("org.apache.logging.log4j:log4j-core:2.14.0")
-    implementation("org.xerial:sqlite-jdbc:3.34.0")
+    implementation("org.javacord:javacord:3.8.0")
+    implementation("com.google.code.gson:gson:2.13.2")
+    implementation("org.xerial:sqlite-jdbc:3.51.1.0")
+    // Logging
+    implementation("org.apache.logging.log4j:log4j-api:2.25.3")
+    runtimeOnly("org.apache.logging.log4j:log4j-core:2.25.3")
 }
 
 application {

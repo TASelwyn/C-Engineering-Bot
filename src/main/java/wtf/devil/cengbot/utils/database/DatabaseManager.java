@@ -31,7 +31,7 @@ public class DatabaseManager {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        } else if (!databaseFile.exists() && databaseFile.length() == 0) {
+        } else if (!databaseFile.exists() & databaseFile.length() == 0) {
             logger.info("Database does not exist. Creating...");
             createDatabase();
         } else if (databaseFile.isDirectory()) {
@@ -48,7 +48,7 @@ public class DatabaseManager {
                     "    discord_id long not null" +
                     "        constraint users_pk" +
                     "            primary key," +
-                    "    add nickname String," +
+                    "    nickname String," +
                     "    cash long default 0 not null," +
                     "    bank long default 0 not null," +
                     "    multiplier double default 1 not null," +
@@ -56,7 +56,11 @@ public class DatabaseManager {
                     "    vault_level int default 1 not null);" +
                     "create unique index users_discord_id_uindex" +
                     "    on users (discord_id);");
-            stmt.executeUpdate("INSERT INTO users VALUES(598372060728918016,100000,500000,1,1,5)");
+            stmt.executeUpdate(
+                    "INSERT INTO users " +
+                    "(discord_id, nickname, cash, bank, multiplier, level, vault_level) " +
+                    "VALUES (598372060728918016, 'imsatan', 100000, 500000, 1, 1, 5)"
+            );
             stmt.close();
             logger.info("Database has been successfully created.");
         } catch (SQLException e) {
