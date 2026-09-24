@@ -1,33 +1,36 @@
 package wtf.devil.cengbot.commands.general;
 
-import org.javacord.api.entity.message.MessageAuthor;
-import org.javacord.api.entity.message.embed.EmbedBuilder;
-import org.javacord.api.entity.server.Server;
-import org.javacord.api.entity.user.User;
-import org.javacord.api.event.message.MessageCreateEvent;
-import org.javacord.api.exception.MissingPermissionsException;
-import org.javacord.api.listener.message.MessageCreateListener;
-import org.javacord.api.util.logging.ExceptionLogger;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import wtf.devil.cengbot.utils.MessageUtils;
+
+import java.util.List;
 
 public class UserInfoCommand {
-    public UserInfoCommand(MessageCreateEvent event, String[] params) {
-        //MessageAuthor author = event.getMessage().getAuthor();
-
-        Server activeServer = event.getServer().get();
-        User user = event.getMessage().getAuthor().asUser().get();
+    public UserInfoCommand(MessageReceivedEvent event, String[] params) {
+        Guild activeServer = event.getGuild();
+        User user = event.getAuthor();
+        Member member = event.getMember();
 
         // Grabs a mention if there is one, if not it'll just default to the message author.
-        if (event.getMessage().getMentionedUsers().size() > 0) {
-            user = event.getMessage().getMentionedUsers().get(0);
+        List<User> mentionedUsers = event.getMessage().getMentions().getUsers();
+        if (!mentionedUsers.isEmpty()) {
+            user = mentionedUsers.get(0);
+            List<Member> mentionedMembers = event.getMessage().getMentions().getMembers();
+            member = mentionedMembers.isEmpty() ? activeServer.getMember(user) : mentionedMembers.get(0);
         }
 
+        String displayName = member != null ? member.getEffectiveName() : user.getName();
 
         EmbedBuilder embed = new EmbedBuilder()
                 .setTitle("User Info")
-                .addField("Display Name", user.getDisplayName(activeServer), true)
+                .addField("Display Name", displayName, true)
                 .addField("Name", user.getName(), true)
-                .addField("User Id", user.getIdAsString(), true)
-                .setAuthor(user);
+                .addField("User Id", user.getId(), true)
+                .setAuthor(user.getName(), null, user.getEffectiveAvatarUrl());
         // Keep in mind that a message author can either be a webhook or a normal user
         //author.asUser().ifPresent(user -> {
         //embed.addField("Online Status", user.getStatus().getStatusString(), true);
@@ -44,7 +47,7 @@ public class UserInfoCommand {
 
 
         // Send the embed. It logs every exception, besides missing permissions (you are not allowed to send message in the channel)
-        event.getChannel().sendMessage(embed)
-                .exceptionally(ExceptionLogger.get(MissingPermissionsException.class));
+        event.getChannel().sendMessageEmbeds(embed.build())
+                .queue(null, MessageUtils.IGNORE_MISSING_PERMS);
     }
 }

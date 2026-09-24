@@ -1,17 +1,17 @@
 package wtf.devil.cengbot.commands.economy;
 
-import org.javacord.api.event.message.MessageCreateEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import wtf.devil.cengbot.utils.modules.Economy;
 import wtf.devil.cengbot.utils.modules.Parsers;
 
 import static wtf.devil.cengbot.Constants.numFormatter;
 
 public class WithdrawCommand {
-    public WithdrawCommand(MessageCreateEvent event, String[] params) {
-        if (params.length == 1 && event.getMessage().getMentionedUsers().size() == 0 && params[0].matches("[A-Za-z0-9]+")) {
+    public WithdrawCommand(MessageReceivedEvent event, String[] params) {
+        if (params.length == 1 && event.getMessage().getMentions().getUsers().isEmpty() && params[0].matches("[A-Za-z0-9]+")) {
             Economy eco = new Economy();
 
-            long callerDiscordID = event.getMessageAuthor().getId();
+            long callerDiscordID = event.getAuthor().getIdLong();
 
             long valueToWithdraw;
             long maxWithdrawalAmount = eco.getBank(callerDiscordID);
@@ -27,18 +27,18 @@ public class WithdrawCommand {
 
             if (valueToWithdraw > 0 && maxWithdrawalAmount > valueToWithdraw) {
                 eco.withdrawBalance(callerDiscordID, valueToWithdraw);
-                event.getChannel().sendMessage("You withdrew $" + numFormatter.format(valueToWithdraw));
+                event.getChannel().sendMessage("You withdrew $" + numFormatter.format(valueToWithdraw)).queue();
             } else if (valueToWithdraw == maxWithdrawalAmount) {
                 eco.withdrawMax(callerDiscordID);
-                event.getChannel().sendMessage("You withdrew everything! Be careful bro");
+                event.getChannel().sendMessage("You withdrew everything! Be careful bro").queue();
             } else if (valueToWithdraw <= 0) {
-                event.getChannel().sendMessage("You cannot withdraw nothing. Nice try though :smirk:");
+                event.getChannel().sendMessage("You cannot withdraw nothing. Nice try though :smirk:").queue();
             } else {
-                event.getChannel().sendMessage("You don't have enough in your bank to do that!");
+                event.getChannel().sendMessage("You don't have enough in your bank to do that!").queue();
             }
 
         } else {
-            event.getChannel().sendMessage("Try again, but this time tell me how much you wanna withdraw! `c.help withdraw`");
+            event.getChannel().sendMessage("Try again, but this time tell me how much you wanna withdraw! `c.help withdraw`").queue();
         }
     }
 }

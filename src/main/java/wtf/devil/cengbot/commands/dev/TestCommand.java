@@ -1,15 +1,14 @@
 package wtf.devil.cengbot.commands.dev;
 
-import org.javacord.api.entity.message.MessageAuthor;
-import org.javacord.api.event.message.MessageCreateEvent;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import wtf.devil.cengbot.Constants;
-import wtf.devil.cengbot.utils.modules.Parsers;
 import wtf.devil.cengbot.utils.database.UserDatabase;
 
 public class TestCommand {
 
-    public TestCommand(MessageCreateEvent event, String[] params, long startTimestamp) {
-        MessageAuthor author = event.getMessage().getAuthor();
+    public TestCommand(MessageReceivedEvent event, String[] params, long startTimestamp) {
+        User author = event.getAuthor();
         //event.getChannel().sendMessage("Empty test");
         /*DiscordApi api = new DiscordApi();
 
@@ -32,11 +31,11 @@ public class TestCommand {
             //long cash = UserDatabase.getCash(author.getId());
             //String cash = UserDatabase.getCash(author.getId());
             //event.getChannel().sendMessage("Your SQL DB Cash pile is at: " + cash);
-            boolean isAlive = UserDatabase.doesUserExistInDB(author.getId());
+            boolean isAlive = UserDatabase.doesUserExistInDB(author.getIdLong());
 
             //event.getChannel().sendMessage("Are you in the DB? " + isAlive);
             if (!isAlive) {
-                UserDatabase.createUserInDB(author.getId());
+                UserDatabase.createUserInDB(author.getIdLong());
             }
 
             //if (params.length > 0) {
@@ -44,7 +43,7 @@ public class TestCommand {
                 //UserDatabase.setValue(author.getId(), "cash", String.valueOf(value));
             //}
 
-            event.getChannel().sendMessage("You have $ " + Constants.numFormatter.format(UserDatabase.getLong(author.getId(), "cash")));
+            event.getChannel().sendMessage("You have $ " + Constants.numFormatter.format(UserDatabase.getLong(author.getIdLong(), "cash"))).queue();
 
 
 

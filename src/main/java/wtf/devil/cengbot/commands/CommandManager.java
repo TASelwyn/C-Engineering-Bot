@@ -1,6 +1,7 @@
 package wtf.devil.cengbot.commands;
 
-import org.javacord.api.event.message.MessageCreateEvent;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import wtf.devil.cengbot.commands.calculators.ParallelCommand;
 import wtf.devil.cengbot.commands.dev.CheatCommand;
 import wtf.devil.cengbot.commands.dev.TestCommand;
@@ -14,7 +15,7 @@ import wtf.devil.cengbot.utils.objects.commandTypes;
 import java.sql.SQLException;
 
 public class CommandManager {
-    public CommandManager(commandTypes commandModules, MessageCreateEvent event, String command, String[] params, long startTimestamp) {
+    public CommandManager(commandTypes commandModules, MessageReceivedEvent event, String command, String[] params, long startTimestamp) {
         switch (commandModules) {
             case CORE:
                 GeneralCommandManager(event, command, params);
@@ -31,7 +32,7 @@ public class CommandManager {
         }
     }
 
-    private void GeneralCommandManager(MessageCreateEvent event, String command, String[] params) {
+    private void GeneralCommandManager(MessageReceivedEvent event, String command, String[] params) {
         switch (command) {
             case "help":
                 new HelpCommand(event, params);
@@ -47,11 +48,12 @@ public class CommandManager {
         }
     }
 
-    private void EconomyCommandManager(MessageCreateEvent event, String command, String[] params) {
-        if (/*event.getChannel().getId() == 799083105184382997L && */UserDatabase.healthCheck(event.getMessageAuthor().getId())) {
+    private void EconomyCommandManager(MessageReceivedEvent event, String command, String[] params) {
+        if (/*event.getChannel().getIdLong() == 799083105184382997L && */UserDatabase.healthCheck(event.getAuthor().getIdLong())) {
             try {
-                UserDatabase.storeLatestNickname(event.getMessageAuthor().getId(), event.getMessageAuthor().getDiscriminatedName());
-                //event.getMessageAuthor().getDisplayName()
+                String currentName = event.getMember() != null ? event.getMember().getEffectiveName() : event.getAuthor().getName();
+                UserDatabase.storeLatestNickname(event.getAuthor().getIdLong(), currentName);
+                //event.getMember().getEffectiveName()
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -65,7 +67,7 @@ public class CommandManager {
                     break;
                 case "pay":
                     //new PayCommand(event, params);
-                    event.getChannel().sendMessage("Command is disabled.");
+                    event.getChannel().sendMessage("Command is disabled.").queue();
                     break;
                 case "rich":
                     new RichCommand(event, params);
@@ -82,15 +84,15 @@ public class CommandManager {
             }
 
 
-        } else if (UserDatabase.healthCheck(event.getMessageAuthor().getId())) {
+        } else if (UserDatabase.healthCheck(event.getAuthor().getIdLong())) {
             // something very wrong
 
         } else {
-            event.getChannel().sendMessage("Economy commands are only available in <#799083105184382997>");
+            event.getChannel().sendMessage("Economy commands are only available in <#799083105184382997>").queue();
         }
     }
 
-    private void CalculatorsCommandManager(MessageCreateEvent event, String command, String[] params) {
+    private void CalculatorsCommandManager(MessageReceivedEvent event, String command, String[] params) {
         switch (command) {
             case "parallel":
                 new ParallelCommand(event, params);
@@ -98,19 +100,21 @@ public class CommandManager {
         }
     }
 
-    private void DevCommandManager(MessageCreateEvent event, String command, String[] params, long startTimestamp) {
-        if (event.getMessageAuthor().isServerAdmin() || command.equalsIgnoreCase("test")) {
+    private void DevCommandManager(MessageReceivedEvent event, String command, String[] params, long startTimestamp) {
+        boolean isServerAdmin = event.isFromGuild() && event.getMember() != null && event.getMember().hasPermission(Permission.ADMINISTRATOR);
+
+        if (isServerAdmin || command.equalsIgnoreCase("test")) {
             switch (command) {
                 case "test":
                     new TestCommand(event, params, startTimestamp);
-                    event.getChannel().sendMessage("Command is disabled.");
+                    event.getChannel().sendMessage("Command is disabled.").queue();
                     break;
                 case "cheat":
                     new CheatCommand(event, params);
                     break;
             }
         } else {
-            event.getChannel().sendMessage("No permissions.");
+            event.getChannel().sendMessage("No permissions.").queue();
         }
     }
 }

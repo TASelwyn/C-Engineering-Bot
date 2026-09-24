@@ -14,7 +14,7 @@ java {
     sourceCompatibility = VERSION_25
 }
 
-// Javacord is on Maven central
+// JDA is on Maven central
 repositories {
     mavenCentral()
     maven {
@@ -26,9 +26,9 @@ repositories {
     }
 }
 
-// The dependencies of the bot. Javacord and Log4J for logging
+// The dependencies of the bot. JDA and Log4J for logging
 dependencies {
-    implementation("org.javacord:javacord:3.8.0")
+    implementation("net.dv8tion:JDA:6.7.0")
     implementation("com.google.code.gson:gson:2.13.2")
     implementation("org.xerial:sqlite-jdbc:3.51.1.0")
     //implementation("io.lettuce:lettuce-core:7.2.1.RELEASE")
@@ -44,5 +44,5 @@ dependencies {
 application {
     // Required to move the output scripts to the root folder
     executableDir = ""
-    mainClass.set("wtf.devil.cengbot.Main")
+    mainClass.set("wtf.devil.cengbot.DevilsBot")
 }

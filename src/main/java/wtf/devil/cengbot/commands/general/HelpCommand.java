@@ -1,10 +1,9 @@
 package wtf.devil.cengbot.commands.general;
 
-import org.javacord.api.entity.message.embed.EmbedBuilder;
-import org.javacord.api.event.message.MessageCreateEvent;
-import org.javacord.api.exception.MissingPermissionsException;
-import org.javacord.api.util.logging.ExceptionLogger;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import wtf.devil.cengbot.Constants;
+import wtf.devil.cengbot.utils.MessageUtils;
 import wtf.devil.cengbot.utils.modules.Parsers;
 import wtf.devil.cengbot.utils.objects.commandTypes;
 
@@ -12,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HelpCommand {
-    public HelpCommand(MessageCreateEvent event, String[] params) {
+    public HelpCommand(MessageReceivedEvent event, String[] params) {
         EmbedBuilder embed = new EmbedBuilder();
         embed.setAuthor("C-Eng Bot Help");
 
@@ -34,8 +33,8 @@ public class HelpCommand {
             embed.addField("Math Calculators", listCommandsInModule(commandTypes.CALCULATORS), false);
         }
 
-        event.getChannel().sendMessage(embed)
-                .exceptionally(ExceptionLogger.get(MissingPermissionsException.class));
+        event.getChannel().sendMessageEmbeds(embed.build())
+                .queue(null, MessageUtils.IGNORE_MISSING_PERMS);
     }
 
     private String listCommandsInModule(commandTypes commandModule) {
@@ -74,4 +73,3 @@ public class HelpCommand {
         return helpDocumentation;
     }
 }
-

@@ -1,7 +1,7 @@
 package wtf.devil.cengbot.commands.economy;
 
-import org.javacord.api.entity.emoji.CustomEmoji;
-import org.javacord.api.event.message.MessageCreateEvent;
+import net.dv8tion.jda.api.entities.emoji.RichCustomEmoji;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import wtf.devil.cengbot.utils.modules.Economy;
 import wtf.devil.cengbot.utils.modules.Parsers;
 
@@ -10,13 +10,13 @@ import java.util.Optional;
 import static wtf.devil.cengbot.Constants.numFormatter;
 
 public class PayCommand {
-    public PayCommand(MessageCreateEvent event, String[] params) {
+    public PayCommand(MessageReceivedEvent event, String[] params) {
         if (params.length == 2) {
 
-            long callerDiscordID = event.getMessageAuthor().getId();
-            long mentionedUserID = event.getMessage().getMentionedUsers().get(0).getId();
+            long callerDiscordID = event.getAuthor().getIdLong();
+            long mentionedUserID = event.getMessage().getMentions().getUsers().get(0).getIdLong();
 
-            if (event.getMessage().getMentionedUsers().size() > 0 && callerDiscordID != mentionedUserID) {
+            if (!event.getMessage().getMentions().getUsers().isEmpty() && callerDiscordID != mentionedUserID) {
                 Parsers stringParsers = new Parsers();
 
                 long value = stringParsers.parseStringToLong(params[1]);
@@ -29,25 +29,27 @@ public class PayCommand {
                 // TODO
                 if (eco.getCash(callerDiscordID) >= value) {
                     eco.payCash(callerDiscordID, mentionedUserID, value);
-                    event.getServer().ifPresent(activeServer -> {
-                        event.getChannel().sendMessage("You gave $" + numFormatter.format(value) + " to " + event.getMessage().getMentionedUsers().get(0).getDisplayName(activeServer) + "!");
-                    });
+                    if (event.isFromGuild()) {
+                        event.getChannel().sendMessage("You gave $" + numFormatter.format(value) + " to " + event.getMessage().getMentions().getUsers().get(0).getName() + "!").queue();
+                    }
 
                 } else {
-                    event.getChannel().sendMessage("You do not have enough money to give them.");
+                    event.getChannel().sendMessage("You do not have enough money to give them.").queue();
                 }
             } else if (callerDiscordID != mentionedUserID) {
 
-                Optional<CustomEmoji> sadKekEmoji = event.getApi().getCustomEmojiById(755840964077289532L).get().asCustomEmoji();
-                sadKekEmoji.ifPresent(customEmoji -> {
-                    event.getChannel().sendMessage("You can't pay yourself! " + customEmoji.getMentionTag());
-                });
+                if (event.isFromGuild()) {
+                    Optional<RichCustomEmoji> sadKekEmoji = Optional.ofNullable(event.getGuild().getEmojiById(755840964077289532L));
+                    sadKekEmoji.ifPresent(customEmoji -> {
+                        event.getChannel().sendMessage("You can't pay yourself! " + customEmoji.getFormatted()).queue();
+                    });
+                }
 
             } else {
-                event.getChannel().sendMessage("Invalid usage. `c.help pay`");
+                event.getChannel().sendMessage("Invalid usage. `c.help pay`").queue();
             }
         } else {
-            event.getChannel().sendMessage("Invalid usage. `c.help pay`");
+            event.getChannel().sendMessage("Invalid usage. `c.help pay`").queue();
         }
     }
 }

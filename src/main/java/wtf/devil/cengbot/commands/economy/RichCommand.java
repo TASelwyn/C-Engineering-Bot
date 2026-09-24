@@ -1,9 +1,8 @@
 package wtf.devil.cengbot.commands.economy;
 
-import org.javacord.api.entity.message.embed.EmbedBuilder;
-import org.javacord.api.event.message.MessageCreateEvent;
-import org.javacord.api.exception.MissingPermissionsException;
-import org.javacord.api.util.logging.ExceptionLogger;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import wtf.devil.cengbot.utils.MessageUtils;
 import wtf.devil.cengbot.utils.database.UserDatabase;
 
 import javax.sql.rowset.CachedRowSet;
@@ -12,7 +11,7 @@ import java.sql.SQLException;
 
 public class RichCommand {
 
-    public RichCommand(MessageCreateEvent event, String[] params) {
+    public RichCommand(MessageReceivedEvent event, String[] params) {
 
         EmbedBuilder embed = new EmbedBuilder()
                 .setColor(Color.MAGENTA);
@@ -46,8 +45,8 @@ public class RichCommand {
             embed.addField("Richest users "/*on " + event.getServer().get().getName()*/, stringBuilder.toString(), false);
             embed.setFooter("ROBBABLE CASH ONLY. Not net worth!");
 
-            event.getChannel().sendMessage(embed)
-                    .exceptionally(ExceptionLogger.get(MissingPermissionsException.class));
+            event.getChannel().sendMessageEmbeds(embed.build())
+                    .queue(null, MessageUtils.IGNORE_MISSING_PERMS);
 
         } catch (SQLException exception) {
             exception.printStackTrace();

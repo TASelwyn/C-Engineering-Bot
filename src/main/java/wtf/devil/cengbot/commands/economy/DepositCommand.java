@@ -1,20 +1,20 @@
 package wtf.devil.cengbot.commands.economy;
 
-import org.javacord.api.event.message.MessageCreateEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import wtf.devil.cengbot.utils.modules.Economy;
 import wtf.devil.cengbot.utils.modules.Parsers;
 
 import static wtf.devil.cengbot.Constants.numFormatter;
 
 public class DepositCommand {
-    public DepositCommand(MessageCreateEvent event, String[] params) {
-        if (params.length == 1 && event.getMessage().getMentionedUsers().size() == 0) {
+    public DepositCommand(MessageReceivedEvent event, String[] params) {
+        if (params.length == 1 && event.getMessage().getMentions().getUsers().isEmpty()) {
             Economy eco = new Economy();
 
             /// c.deposit max
 
 
-            long callerDiscordID = event.getMessageAuthor().getId();
+            long callerDiscordID = event.getAuthor().getIdLong();
 
             long valueToDeposit;
             long maxDepositAmount = eco.getMaxDepositAmount(callerDiscordID);
@@ -35,17 +35,17 @@ public class DepositCommand {
 
             if (valueToDeposit > 0 && (valueToDeposit <= cashInHand)) {
                 eco.depositBalance(callerDiscordID, valueToDeposit);
-                event.getChannel().sendMessage("You deposited $" + numFormatter.format(valueToDeposit) + " into your bank's vault.");
+                event.getChannel().sendMessage("You deposited $" + numFormatter.format(valueToDeposit) + " into your bank's vault.").queue();
             } else if (maxDepositAmount == 0) {
-                event.getChannel().sendMessage("Bro, your bank is full! Try upgrading your vault.");
+                event.getChannel().sendMessage("Bro, your bank is full! Try upgrading your vault.").queue();
             } else if (valueToDeposit <= 0) {
-                event.getChannel().sendMessage("Trying to deposit nothing, are we?");
+                event.getChannel().sendMessage("Trying to deposit nothing, are we?").queue();
             } else {
-                event.getChannel().sendMessage("You don't have enough money to perform that action.");
+                event.getChannel().sendMessage("You don't have enough money to perform that action.").queue();
             }
 
         } else {
-            event.getChannel().sendMessage("Not quite sure how much you want me to deposit, so I did nothing. `c.help deposit`");
+            event.getChannel().sendMessage("Not quite sure how much you want me to deposit, so I did nothing. `c.help deposit`").queue();
         }
     }
 }

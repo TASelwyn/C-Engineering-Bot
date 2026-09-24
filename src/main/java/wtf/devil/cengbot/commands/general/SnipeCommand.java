@@ -1,17 +1,16 @@
 package wtf.devil.cengbot.commands.general;
 
-import org.javacord.api.entity.message.MessageAuthor;
-import org.javacord.api.entity.message.embed.EmbedBuilder;
-import org.javacord.api.event.message.MessageCreateEvent;
-import org.javacord.api.exception.MissingPermissionsException;
-import org.javacord.api.util.logging.ExceptionLogger;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import wtf.devil.cengbot.utils.MessageUtils;
 
 import java.awt.*;
 
 public class SnipeCommand {
-    public SnipeCommand(MessageCreateEvent event, String[] params) {
+    public SnipeCommand(MessageReceivedEvent event, String[] params) {
         //event.getChannel().sendMessage("EXAMPLE COMMAND");
-        MessageAuthor author = event.getMessageAuthor();
+        User author = event.getAuthor();
 
         EmbedBuilder embed = new EmbedBuilder()
                 .setTitle("COMMAND NOT FUNCTIONAL YET --->")
@@ -19,9 +18,9 @@ public class SnipeCommand {
                 .addField("New message", "not a command yet", false)
                 //.addField("Edit timestamp", event.getMessage().get().getLastEditTimestamp().get().toString(), false)
                 .setColor(Color.BLACK)
-                .setAuthor(author);
+                .setAuthor(author.getName(), null, author.getEffectiveAvatarUrl());
 
-        event.getChannel().sendMessage(embed)
-                .exceptionally(ExceptionLogger.get(MissingPermissionsException.class));
+        event.getChannel().sendMessageEmbeds(embed.build())
+                .queue(null, MessageUtils.IGNORE_MISSING_PERMS);
     }
 }

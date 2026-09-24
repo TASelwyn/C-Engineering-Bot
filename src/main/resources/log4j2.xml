@@ -20,9 +20,9 @@
             <AppenderRef ref="Console Appender"/>
             <AppenderRef ref="File Appender"/>
         </Root>
-        <!-- Javacord -->
+        <!-- JDA -->
 
-        <Logger name="org.javacord" level="INFO" additivity="false">
+        <Logger name="net.dv8tion.jda" level="INFO" additivity="false">
             <AppenderRef ref="Console Appender"/>
         </Logger>
         <!-- Lettuce core -->

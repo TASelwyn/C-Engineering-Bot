@@ -1,16 +1,19 @@
 package wtf.devil.cengbot;
 
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.exceptions.InvalidTokenException;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.javacord.api.DiscordApi;
-import org.javacord.api.DiscordApiBuilder;
-import org.javacord.api.util.logging.ExceptionLogger;
 import wtf.devil.cengbot.utils.Config;
-import wtf.devil.cengbot.utils.DiscordShardRegistry;
 import wtf.devil.cengbot.utils.objects.BotConfig;
+import wtf.devil.cengbot.utils.watchers.BotLifecycleListener;
 import wtf.devil.cengbot.utils.watchers.CommandWatcher;
 
 import java.util.Calendar;
+import java.util.EnumSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -47,39 +50,18 @@ public class DevilsBot {
             logger.error("Token supplied is invalid. Please enter a token in config.json");
         }
 
-        new DiscordApiBuilder()
-                .setToken(discordToken)
-                .setAllIntents()
-                .setTotalShards(1)
-                //.setRecommendedTotalShards().join()
-                .loginAllShards()
-                .forEach(shardFuture -> shardFuture
-                        .thenAcceptAsync(DevilsBot::onShardLogin)
-                        .exceptionally(ExceptionLogger.get())
-                );
+        try {
+            JDABuilder.create(discordToken, EnumSet.allOf(GatewayIntent.class))
+                    .enableCache(CacheFlag.EMOJI)
+                    .setActivity(Activity.streaming("c.help", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
+                    .addEventListeners(new CommandWatcher(), new BotLifecycleListener())
+                    .build();
+        } catch (InvalidTokenException e) {
+            logger.error("Token supplied is invalid. Please enter a valid token in config.json");
+            System.exit(0);
+        }
 
         logger.info("Bot successfully started.");
-    }
-
-    private static void onShardLogin(DiscordApi api) {
-        Logger logger = LogManager.getLogger(DevilsBot.class);
-        logger.info("Shard " + api.getCurrentShard() + " logged in!");
-        //api.updateActivity(ActivityType.LISTENING, ("c.help | Shard " + api.getCurrentShard()));
-        api.updateActivity("c.help | Shard " + api.getCurrentShard(), "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
-
-        //logger.info("You can invite me by using the following url: " + api.createBotInvite());
-
-        // Add Watchers
-        api.addMessageCreateListener(new CommandWatcher());
-        //api.addMessageEditListener(new SnipeWatcher());
-
-        // Log a message, if the bot joined or left a server
-        api.addServerJoinListener(event -> logger.info("Joined server " + event.getServer().getName()));
-        api.addServerLeaveListener(event -> logger.info("Left server " + event.getServer().getName()));
-
-        DiscordShardRegistry.register(api);
-
-        logger.info("Shard {} ready ", api.getCurrentShard());
     }
 
     private static void setLogProperty() {

@@ -1,13 +1,13 @@
 package wtf.devil.cengbot.commands;
 
-import org.javacord.api.entity.message.MessageAuthor;
-import org.javacord.api.event.message.MessageCreateEvent;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class ExampleCommand {
 
-    public ExampleCommand(MessageCreateEvent event, String[] params) {
+    public ExampleCommand(MessageReceivedEvent event, String[] params) {
 
-        MessageAuthor author = event.getMessage().getAuthor();
+        User author = event.getAuthor();
 
     }
 }
