@@ -3,7 +3,7 @@ package wtf.devil.cengbot.utils.database;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import wtf.devil.cengbot.Constants;
-import wtf.devil.cengbot.Main;
+import wtf.devil.cengbot.DevilsBot;
 
 import java.io.File;
 import java.sql.*;
@@ -11,7 +11,7 @@ import java.sql.*;
 import static wtf.devil.cengbot.Constants.databaseConnectionURI;
 
 public class DatabaseManager {
-    private static Logger logger = LogManager.getLogger(Main.class);
+    private static Logger logger = LogManager.getLogger(DevilsBot.class);
 
     public static boolean databaseTestConnection() {
         File databaseFile = new File(Constants.databaseFile);

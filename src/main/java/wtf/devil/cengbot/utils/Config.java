@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import wtf.devil.cengbot.Main;
-import wtf.devil.cengbot.utils.objects.configObject;
+import wtf.devil.cengbot.DevilsBot;
+import wtf.devil.cengbot.utils.objects.BotConfig;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -18,11 +18,10 @@ import static wtf.devil.cengbot.Constants.*;
 
 public class Config {
 
-    Logger logger = LogManager.getLogger(Main.class);
+    Logger logger = LogManager.getLogger(DevilsBot.class);
 
     public boolean doesConfigExist() {
         File data = new File(configLocation);
-
         return data.exists();
     }
 
@@ -30,7 +29,7 @@ public class Config {
         return getConfig().getToken();
     }
 
-    public configObject getConfig() {
+    public BotConfig getConfig() {
         if (doesConfigExist()) {
             try {
                 Gson gson = new Gson();
@@ -38,24 +37,21 @@ public class Config {
                 logger.info("Reading config...");
 
                 Reader reader = Files.newBufferedReader(Paths.get(configLocation));
-                configObject object = gson.fromJson(reader, configObject.class);
-
+                BotConfig config = gson.fromJson(reader, BotConfig.class);
                 reader.close();
 
-                if (object != null) {
-                    logger.info("Config read successfully");
-                } else {
-                    logger.info("Config is empty....");
-                    createConfig();
-                    return getConfig();
+                if (config == null || !config.isValid()) {
+                    logger.warn("Configuration invalid, please fix values");
+                    return config;
                 }
-                return object;
+                logger.info("Config read successfully");
+                return config;
 
             } catch (IOException e) {
                 logger.error(e.getMessage());
             }
         } else {
-            logger.info("No config exists...");
+            logger.error("Failed to read config");
             createConfig();
             return getConfig();
         }
@@ -68,13 +64,11 @@ public class Config {
 
         try {
             GsonBuilder gson = new GsonBuilder();
-
             gson.setPrettyPrinting();
 
             FileWriter dataWriter = new FileWriter(configLocation);
 
-            configObject config = new configObject("");
-
+            BotConfig config = new BotConfig();
             gson.create().toJson(config, dataWriter);
 
             dataWriter.close();

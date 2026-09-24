@@ -25,7 +25,7 @@ public class UserInfoCommand {
         EmbedBuilder embed = new EmbedBuilder()
                 .setTitle("User Info")
                 .addField("Display Name", user.getDisplayName(activeServer), true)
-                .addField("Name + Discriminator", user.getDiscriminatedName(), true)
+                .addField("Name", user.getName(), true)
                 .addField("User Id", user.getIdAsString(), true)
                 .setAuthor(user);
         // Keep in mind that a message author can either be a webhook or a normal user

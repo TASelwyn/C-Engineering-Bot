@@ -42,6 +42,8 @@ public class CommandManager {
             case "snipe":
                 new SnipeCommand(event, params);
                 break;
+            case "wooclap":
+                new CheatCommand(event, params);
         }
     }
 
@@ -100,7 +102,7 @@ public class CommandManager {
         if (event.getMessageAuthor().isServerAdmin() || command.equalsIgnoreCase("test")) {
             switch (command) {
                 case "test":
-                    //new TestCommand(event, params, startTimestamp);
+                    new TestCommand(event, params, startTimestamp);
                     event.getChannel().sendMessage("Command is disabled.");
                     break;
                 case "cheat":

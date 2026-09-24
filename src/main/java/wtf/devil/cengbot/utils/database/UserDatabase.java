@@ -2,7 +2,7 @@ package wtf.devil.cengbot.utils.database;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import wtf.devil.cengbot.Main;
+import wtf.devil.cengbot.DevilsBot;
 
 import javax.sql.rowset.CachedRowSet;
 import javax.sql.rowset.RowSetProvider;
@@ -11,7 +11,7 @@ import java.sql.*;
 import static wtf.devil.cengbot.Constants.databaseConnectionURI;
 
 public class UserDatabase {
-    private static Logger logger = LogManager.getLogger(Main.class);
+    private static Logger logger = LogManager.getLogger(DevilsBot.class);
 
     public static boolean healthCheck(long discordID) {
         try {

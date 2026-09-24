@@ -2,17 +2,10 @@ package wtf.devil.cengbot.utils.modules;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import wtf.devil.cengbot.Constants;
-import wtf.devil.cengbot.Main;
-import wtf.devil.cengbot.utils.modules.Parsers;
-
-import java.io.File;
-import java.sql.*;
-
-import static wtf.devil.cengbot.Constants.databaseConnectionURI;
+import wtf.devil.cengbot.DevilsBot;
 
 public class MathCalculators {
-    private static Logger logger = LogManager.getLogger(Main.class);
+    private static Logger logger = LogManager.getLogger(DevilsBot.class);
 
     public static double parallelResistance(String[] params) {
         double eqvResistance;

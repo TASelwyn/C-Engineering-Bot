@@ -20,5 +20,24 @@
             <AppenderRef ref="Console Appender"/>
             <AppenderRef ref="File Appender"/>
         </Root>
+        <!-- Javacord -->
+
+        <Logger name="org.javacord" level="INFO" additivity="false">
+            <AppenderRef ref="Console Appender"/>
+        </Logger>
+        <!-- Lettuce core -->
+        <Logger name="io.lettuce.core" level="INFO" additivity="false">
+            <AppenderRef ref="Console Appender"/>
+        </Logger>
+
+        <!-- Pub/Sub traffic (very verbose, enable only when debugging) -->
+        <Logger name="io.lettuce.core.pubsub" level="INFO" additivity="false">
+            <AppenderRef ref="Console Appender"/>
+        </Logger>
+
+        <!-- Network / protocol (wire-level) -->
+        <Logger name="io.lettuce.core.protocol" level="WARN" additivity="false">
+            <AppenderRef ref="Console Appender"/>
+        </Logger>
     </Loggers>
 </Configuration>

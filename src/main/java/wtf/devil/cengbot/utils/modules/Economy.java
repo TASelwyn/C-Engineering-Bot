@@ -3,14 +3,14 @@ package wtf.devil.cengbot.utils.modules;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import wtf.devil.cengbot.Main;
+import wtf.devil.cengbot.DevilsBot;
 import wtf.devil.cengbot.utils.database.UserDatabase;
 
 import java.sql.SQLException;
 
 public class Economy {
 
-    private static final Logger logger = LogManager.getLogger(Main.class);
+    private static final Logger logger = LogManager.getLogger(DevilsBot.class);
 
     public long getCash(long discordID) {
         try {
