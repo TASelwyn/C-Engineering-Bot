@@ -1,0 +1,10 @@
+.git
+.gradle
+.idea
+build
+data
+test
+*.iml
+*.sqlite
+compose.yaml
+Dockerfile

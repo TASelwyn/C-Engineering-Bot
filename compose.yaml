@@ -1,10 +1,19 @@
 services:
-  redis:
-    image: redis:8.4.0-alpine
-    ports:
-      - "6379:6379"
+  bot:
+    build:
+      context: .
+      secrets:
+        - github_actor
+        - github_token
+    image: ghcr.io/taselwyn/c-engineering-bot:latest
+    restart: unless-stopped
     volumes:
-      - redis-data:/data
-    command: ["redis-server", "--appendonly", "yes"]
-volumes:
-  redis-data:
+      - ./data:/app/data
+
+
+# Credentials for GitHub Packages (Wooclapper), read from the host environment at build time
+secrets:
+  github_actor:
+    environment: GITHUB_ACTOR
+  github_token:
+    environment: GITHUB_TOKEN
