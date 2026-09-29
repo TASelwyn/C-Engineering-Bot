@@ -16,3 +16,5 @@ S
 
 # Ignore data
 /data/
+
+compose.yaml

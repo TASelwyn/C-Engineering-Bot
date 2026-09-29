@@ -407,15 +407,7 @@ public class WooclapCommand {
         }
 
         try {
-            boolean first;
-            // Locked so two users joining at once can't both count as the first participant
-            synchronized (wooclap) {
-                first = !wooclap.hasParticipants();
-                wooclap.addParticipant(uuidFromDiscordID(discordID), authToken);
-            }
-            if (first) {
-                WooclapLogRouter.post("Answers for Wooclap " + eventCode + ":\n" + wooclap.getAllAnswersText());
-            }
+            wooclap.addParticipant(uuidFromDiscordID(discordID), authToken);
         } catch (NeedsAuth e) {
             // Only a rejected token (or the wrong kind of account) is worth asking for a new one
             logger.warn("Wooclap {} rejected the token for {}: {}", eventCode, discordID, e.getMessage());
