@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import wtf.devil.cengbot.DevilsBot;
+import wtf.devil.cengbot.commands.dev.WooclapClearCommand;
 import wtf.devil.cengbot.commands.dev.WooclapPullCommand;
 import wtf.devil.cengbot.commands.general.WooclapCommand;
 import wtf.devil.cengbot.commands.general.WooclapQuestionsCommand;
@@ -31,6 +32,9 @@ public class BotLifecycleListener extends ListenerAdapter {
                 .addCommands(WooclapPullCommand.SLASH_COMMAND)
                 .addCommands(WooclapTokenCommands.SLASH_COMMANDS)
                 .queue();
+
+        // Nobody is in an event after a restart, so start the log channel fresh
+        WooclapClearCommand.clearLogChannel(event.getJDA(), "Wooclapper started. Use `/join <event_code>` to join a Wooclap event.");
     }
 
     @Override
