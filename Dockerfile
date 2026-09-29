@@ -27,7 +27,7 @@ WORKDIR /app
 
 COPY --from=build /src/build/install/cengbot/ ./
 
-# config.json, cengbot.sqlite and logs/ all live here (relative to the working directory)
+# config/config.json and logs/ live here (relative to the working directory)
 VOLUME /app/data
 
 ENTRYPOINT ["./cengbot"]

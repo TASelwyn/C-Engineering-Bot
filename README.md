@@ -51,7 +51,7 @@ class.
 ## Building the bot for production
 
 To get a distributable package you run `gradlew distZip`. The created zip is located
-at `build/distributions/cengbot-0.0.4-DEV.zip` and contains all necessary things to run the bot, except the token. The token goes in `data/config.json`, a file that is generated on first launch. 
+at `build/distributions/cengbot-0.0.4-DEV.zip` and contains all necessary things to run the bot, except the token. The token goes in `data/config/config.json`, a file that is generated on first launch. 
 Take a look at the [build.gradle.kts](https://github.com/TASelwyn/C-Engineering-Bot/blob/master/build.gradle.kts) file for additional build parameters. 
 
 ## Running the bot for production
@@ -65,5 +65,9 @@ cd cengbot-0.0.4-DEV
 ./cengbot
 ```
 
-After starting, you'll need to edit `data/config.json` to include your discord bot's access token.
-Then restart the bot. A log file will be created in the `data/logs` directory where you execute the last command.
+After starting, you'll need to edit `data/config/config.json` to include your discord bot's access token.
+The bot stores its data in Postgres, so also set `databaseUrl`, `databaseUser` and `databasePassword` there
+(or the `DATABASE_URL`, `DATABASE_USER` and `DATABASE_PASSWORD` environment variables, which take priority).
+Tables are created automatically on startup. Then restart the bot.
+
+With Docker, `compose.yaml` runs Postgres alongside the bot on an internal network (its port is not exposed to the host). A log file will be created in the `data/logs` directory where you execute the last command.

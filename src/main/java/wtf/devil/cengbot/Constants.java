@@ -11,10 +11,7 @@ public final class Constants {
 
     public static final String rootDir = "data/";
     public static final String logsLocation = rootDir + "logs/";
-    public static final String configLocation = rootDir + "config.json";
-
-    public static final String databaseFile = "data/cengbot.sqlite";
-    public static final String databaseConnectionURI = "jdbc:sqlite:" + databaseFile;
+    public static final String configLocation = rootDir + "config/config.json";
 
     // Commands
     public static final String commandPrefix = "c.";

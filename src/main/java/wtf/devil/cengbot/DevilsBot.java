@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import tech.selwyn.wooclapper.Wooclapper;
 import wtf.devil.cengbot.utils.Config;
+import wtf.devil.cengbot.utils.database.Database;
 import wtf.devil.cengbot.utils.modules.WooclapLogRouter;
 import wtf.devil.cengbot.utils.objects.BotConfig;
 import wtf.devil.cengbot.utils.watchers.BotLifecycleListener;
@@ -19,7 +20,6 @@ import java.util.Calendar;
 import java.util.EnumSet;
 
 import static wtf.devil.cengbot.Constants.*;
-import static wtf.devil.cengbot.utils.database.DatabaseManager.databaseTestConnection;
 
 public class DevilsBot {
 
@@ -56,10 +56,11 @@ public class DevilsBot {
             System.exit(0);
         }
 
-        if (!databaseTestConnection()) {
+        if (!Database.connect(config)) {
             logger.error("Unable to connect to the database. Bot closing.");
             System.exit(0);
         }
+        Runtime.getRuntime().addShutdownHook(new Thread(Database::close, "database-shutdown"));
 
         String discordToken = config.getToken();
 

@@ -3,9 +3,11 @@ package wtf.devil.cengbot.commands.dev;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import wtf.devil.cengbot.Constants;
-import wtf.devil.cengbot.utils.database.UserDatabase;
+import wtf.devil.cengbot.utils.database.repo.UserRepo;
 
 public class TestCommand {
+
+    private static final UserRepo userRepo = new UserRepo();
 
     public TestCommand(MessageReceivedEvent event, String[] params) {
         User author = event.getAuthor();
@@ -31,19 +33,14 @@ public class TestCommand {
             //long cash = UserDatabase.getCash(author.getId());
             //String cash = UserDatabase.getCash(author.getId());
             //event.getChannel().sendMessage("Your SQL DB Cash pile is at: " + cash);
-            boolean isAlive = UserDatabase.doesUserExistInDB(author.getIdLong());
-
-            //event.getChannel().sendMessage("Are you in the DB? " + isAlive);
-            if (!isAlive) {
-                UserDatabase.createUserInDB(author.getIdLong());
-            }
+            //event.getChannel().sendMessage("Are you in the DB? " + userRepo.existsById(author.getIdLong()));
 
             //if (params.length > 0) {
                 //long value = Parsers.parseStringToLong(params[0]);
                 //UserDatabase.setValue(author.getId(), "cash", String.valueOf(value));
             //}
 
-            event.getChannel().sendMessage("You have $ " + Constants.numFormatter.format(UserDatabase.getLong(author.getIdLong(), "cash"))).queue();
+            event.getChannel().sendMessage("You have $ " + Constants.numFormatter.format(userRepo.findOrCreate(author.getIdLong()).getCash())).queue();
 
 
 

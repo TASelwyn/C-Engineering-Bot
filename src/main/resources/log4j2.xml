@@ -25,6 +25,10 @@
         <Logger name="net.dv8tion.jda" level="INFO" additivity="false">
             <AppenderRef ref="Console Appender"/>
         </Logger>
+        <!-- Hibernate / HikariCP (DEBUG would log every SQL statement, including Wooclap tokens being bound) -->
+        <Logger name="org.hibernate" level="INFO"/>
+        <Logger name="com.zaxxer.hikari" level="INFO"/>
+
         <!-- Lettuce core -->
         <Logger name="io.lettuce.core" level="INFO" additivity="false">
             <AppenderRef ref="Console Appender"/>

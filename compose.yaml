@@ -3,4 +3,30 @@ services:
     image: ghcr.io/taselwyn/c-engineering-bot:latest
     restart: unless-stopped
     volumes:
-      - ./data:/app/data
+      - ./data/logs:/app/data/logs
+      - ./data/config:/app/data/config
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/cengbot
+      DATABASE_USER: cengbot
+      DATABASE_PASSWORD: cengbot
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cengbot
+      POSTGRES_USER: cengbot
+      POSTGRES_PASSWORD: cengbot
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cengbot -d cengbot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

@@ -3,14 +3,15 @@ package wtf.devil.cengbot.commands;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import wtf.devil.cengbot.utils.database.UserDatabase;
+import wtf.devil.cengbot.utils.database.repo.UserRepo;
+import wtf.devil.cengbot.utils.modules.Economy;
 import wtf.devil.cengbot.utils.objects.CommandDefinition;
-
-import java.sql.SQLException;
 
 import static wtf.devil.cengbot.utils.objects.commandTypes.OWNER;
 
 public class CommandManager {
+
+    private static final UserRepo userRepo = new UserRepo();
 
     public CommandManager(CommandDefinition definition, MessageReceivedEvent event, String[] params) {
         // Owner check needs the application info from Discord, so it runs async
@@ -42,17 +43,13 @@ public class CommandManager {
     private boolean allowEconomy(MessageReceivedEvent event) {
         long authorId = event.getAuthor().getIdLong();
 
-        if (!UserDatabase.healthCheck(authorId)) {
+        if (!new Economy().healthCheck(authorId)) {
             event.getChannel().sendMessage("Economy commands are only available in <#799083105184382997>").queue();
             return false;
         }
 
-        try {
-            String currentName = event.getMember() != null ? event.getMember().getEffectiveName() : event.getAuthor().getName();
-            UserDatabase.storeLatestNickname(authorId, currentName);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        String currentName = event.getMember() != null ? event.getMember().getEffectiveName() : event.getAuthor().getName();
+        userRepo.updateNickname(authorId, currentName);
 
         return true;
     }

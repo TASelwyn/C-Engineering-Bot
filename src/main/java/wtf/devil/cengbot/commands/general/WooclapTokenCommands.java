@@ -1,5 +1,6 @@
 package wtf.devil.cengbot.commands.general;
 
+import jakarta.persistence.PersistenceException;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -11,9 +12,9 @@ import tech.selwyn.wooclapper.dto.User;
 import tech.selwyn.wooclapper.dto.UserProfile;
 import tech.selwyn.wooclapper.model.error.NeedsAuth;
 import tech.selwyn.wooclapper.model.error.WooclapError;
-import wtf.devil.cengbot.utils.database.WooclapDatabase;
+import wtf.devil.cengbot.utils.database.model.WooclapToken;
+import wtf.devil.cengbot.utils.database.repo.WooclapTokenRepo;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -25,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 public class WooclapTokenCommands {
 
     private static final Logger logger = LogManager.getLogger(WooclapTokenCommands.class);
+    private static final WooclapTokenRepo tokenRepo = new WooclapTokenRepo();
 
     public static final String SET_NAME = "settoken";
     public static final String GET_NAME = "gettoken";
@@ -61,7 +63,7 @@ public class WooclapTokenCommands {
                 case CLEAR_NAME -> clearToken(discordID);
                 default -> null;
             };
-        } catch (SQLException e) {
+        } catch (PersistenceException e) {
             logger.error("Wooclap token command /{} failed for {}", event.getName(), discordID, e);
             reply = "Couldn't reach the token database, try again later.";
         }
@@ -103,8 +105,8 @@ public class WooclapTokenCommands {
     private static CheckResult check(long discordID) {
         Optional<String> savedToken;
         try {
-            savedToken = WooclapDatabase.getAuthToken(discordID);
-        } catch (SQLException e) {
+            savedToken = tokenRepo.findById(discordID).map(WooclapToken::getAuthToken);
+        } catch (PersistenceException e) {
             logger.error("Failed to read Wooclap token for {}", discordID, e);
             return new CheckResult("Couldn't reach the token database, try again later.", false);
         }
@@ -130,15 +132,15 @@ public class WooclapTokenCommands {
         return new CheckResult("Your saved Wooclap token works. It belongs to **" + user.displayName() + "**" + sso + ".", false);
     }
 
-    private static String getToken(long discordID) throws SQLException {
-        Optional<String> savedToken = WooclapDatabase.getAuthToken(discordID);
+    private static String getToken(long discordID) {
+        Optional<String> savedToken = tokenRepo.findById(discordID).map(WooclapToken::getAuthToken);
         return savedToken
                 .map(token -> "Your saved Wooclap token: ||`" + token + "`||")
                 .orElse("You don't have a Wooclap token saved. Use `/" + SET_NAME + "` to save one.");
     }
 
-    private static String clearToken(long discordID) throws SQLException {
-        return WooclapDatabase.clearAuthToken(discordID)
+    private static String clearToken(long discordID) {
+        return tokenRepo.deleteById(discordID)
                 ? "Your Wooclap token has been deleted."
                 : "You don't have a Wooclap token saved.";
     }

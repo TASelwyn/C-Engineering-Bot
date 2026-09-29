@@ -2,186 +2,141 @@ package wtf.devil.cengbot.utils.modules;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import wtf.devil.cengbot.DevilsBot;
-import wtf.devil.cengbot.utils.database.UserDatabase;
-
-import java.sql.SQLException;
+import wtf.devil.cengbot.utils.database.model.BotUser;
+import wtf.devil.cengbot.utils.database.repo.UserRepo;
 
 public class Economy {
 
     private static final Logger logger = LogManager.getLogger(DevilsBot.class);
+    private static final UserRepo userRepo = new UserRepo();
 
     public long getCash(long discordID) {
-        try {
-            return UserDatabase.getLong(discordID, "cash");
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
-
-        return 0L;
+        return userRepo.findOrCreate(discordID).getCash();
     }
 
     public long getBank(long discordID) {
-        try {
-            return UserDatabase.getLong(discordID, "bank");
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
-
-        return 0L;
+        return userRepo.findOrCreate(discordID).getBank();
     }
 
     public double getMultiplier(long discordID) {
-        try {
-            return UserDatabase.getDouble(discordID, "multiplier");
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
-
-        return 1;
+        return userRepo.findOrCreate(discordID).getMultiplier();
     }
 
     public int getLevel(long discordID) {
-        try {
-            return UserDatabase.getInt(discordID, "level");
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
-        return 0;
+        return userRepo.findOrCreate(discordID).getLevel();
     }
 
     public int getVaultLevel(long discordID) {
-        try {
-            return UserDatabase.getInt(discordID, "vault_level");
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
-        return 0;
+        return userRepo.findOrCreate(discordID).getVaultLevel();
     }
 
 
     public void setCash(long discordID, long cash) {
-        try {
-            UserDatabase.setValue(discordID, "cash", String.valueOf(cash));
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
+        userRepo.update(discordID, user -> user.setCash(cash));
     }
 
     public void setBank(long discordID, long bank) {
-        try {
-            UserDatabase.setValue(discordID, "bank", String.valueOf(bank));
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
+        userRepo.update(discordID, user -> user.setBank(bank));
     }
 
     public void setMultiplier(long discordID, double multiplier) {
-        try {
-            UserDatabase.setValue(discordID, "multiplier", String.valueOf(multiplier));
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
+        userRepo.update(discordID, user -> user.setMultiplier(multiplier));
     }
 
     public boolean doesUserExist(long discordID) {
-        return UserDatabase.doesUserExistInDB(discordID);
+        return userRepo.existsById(discordID);
     }
 
     public boolean healthCheck(long discordID) {
-        return UserDatabase.healthCheck(discordID);
+        try {
+            userRepo.findOrCreate(discordID);
+            return true;
+        } catch (RuntimeException exception) {
+            logger.error("(" + discordID + "-DB) health check failed", exception);
+            return false;
+        }
     }
 
     public void createNewUser(long discordID) {
-        try {
-            UserDatabase.createUserInDB(discordID);
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
+        userRepo.findOrCreate(discordID);
     }
 
     public long getMaxDepositAmount(long discordID) {
-        return getMaxVaultHoldings(discordID) - getBank(discordID);
+        return maxDepositAmount(userRepo.findOrCreate(discordID));
     }
 
     public long getMaxVaultHoldings(long discordID) {
-
-        /*int vaultLevel = getVaultLevel(discordID);
-        // TODO
-        switch (vaultLevel) {
-            case 1:
-                return 500000;
-            case 2:
-                return 1000000;
-            case 3:
-                return 1500000;
-            case 4:
-                return 2500000;
-        }*/
-        return (long) getVaultLevel(discordID) * 500000L;
+        return maxVaultHoldings(userRepo.findOrCreate(discordID));
     }
 
     public double getVaultUsedPercentage(long discordID) {
-        double bank = (double) getBank(discordID);
-        double vaultHoldings = (double) getMaxVaultHoldings(discordID);
-        return bank / vaultHoldings;
+        BotUser user = userRepo.findOrCreate(discordID);
+        return (double) user.getBank() / (double) maxVaultHoldings(user);
     }
 
     public void depositBalance(long discordID, long moneyToDeposit) {
-
-        if (moneyToDeposit > getMaxDepositAmount(discordID)) {
-            moneyToDeposit = getMaxDepositAmount(discordID);
-        }
-
-        if (getCash(discordID) < moneyToDeposit) {
-            moneyToDeposit = getCash(discordID);
-        }
-
-        removeCash(discordID, moneyToDeposit);
-        addBank(discordID, moneyToDeposit);
+        userRepo.update(discordID, user -> {
+            long amount = Math.min(moneyToDeposit, Math.min(maxDepositAmount(user), user.getCash()));
+            user.setCash(user.getCash() - amount);
+            user.setBank(user.getBank() + amount);
+        });
     }
 
     public void depositMax(long discordID) {
-        depositBalance(discordID, getMaxDepositAmount(discordID));
+        depositBalance(discordID, Long.MAX_VALUE);
     }
 
     public void withdrawBalance(long discordID, long moneyToWithdraw) {
-        removeBank(discordID, moneyToWithdraw);
-        addCash(discordID, moneyToWithdraw);
+        userRepo.update(discordID, user -> {
+            user.setBank(user.getBank() - moneyToWithdraw);
+            user.setCash(user.getCash() + moneyToWithdraw);
+        });
     }
 
     public void withdrawMax(long discordID) {
-        withdrawBalance(discordID, getBank(discordID));
+        userRepo.update(discordID, user -> {
+            user.setCash(user.getCash() + user.getBank());
+            user.setBank(0);
+        });
     }
 
     public void payCash(long payeeDiscordID, long discordID, long cashToPay) {
-        if (healthCheck(payeeDiscordID) && healthCheck(discordID)) {
-            removeCash(payeeDiscordID, cashToPay);
-            addCash(discordID, cashToPay);
-        }
+        transferCash(payeeDiscordID, discordID, cashToPay);
     }
 
     public void addCash(long discordID, long moneyToAdd) {
-        setCash(discordID, getCash(discordID) + moneyToAdd);
+        userRepo.update(discordID, user -> user.setCash(user.getCash() + moneyToAdd));
     }
 
     public void addBank(long discordID, long moneyToAdd) {
-        setBank(discordID, getBank(discordID) + moneyToAdd);
+        userRepo.update(discordID, user -> user.setBank(user.getBank() + moneyToAdd));
     }
 
     public void removeCash(long discordID, long moneyToRemove) {
-        setCash(discordID, getCash(discordID) - moneyToRemove);
+        addCash(discordID, -moneyToRemove);
     }
 
     public void removeBank(long discordID, long moneyToRemove) {
-        setBank(discordID, getBank(discordID) - moneyToRemove);
+        addBank(discordID, -moneyToRemove);
     }
 
     public void robUser(long callerDiscordID, long robbedDiscordID, long robbedAmount) {
-        if (healthCheck(callerDiscordID) && healthCheck(robbedDiscordID)) {
-            removeCash(robbedDiscordID, robbedAmount);
-            addCash(callerDiscordID, robbedAmount);
-        }
+        transferCash(robbedDiscordID, callerDiscordID, robbedAmount);
+    }
+
+    private static void transferCash(long fromDiscordID, long toDiscordID, long amount) {
+        userRepo.update(fromDiscordID, toDiscordID, (from, to) -> {
+            from.setCash(from.getCash() - amount);
+            to.setCash(to.getCash() + amount);
+        });
+    }
+
+    private static long maxVaultHoldings(BotUser user) {
+        return (long) user.getVaultLevel() * 500000L;
+    }
+
+    private static long maxDepositAmount(BotUser user) {
+        return maxVaultHoldings(user) - user.getBank();
     }
 }
