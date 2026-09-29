@@ -7,7 +7,7 @@ import wtf.devil.cengbot.utils.database.UserDatabase;
 
 public class TestCommand {
 
-    public TestCommand(MessageReceivedEvent event, String[] params, long startTimestamp) {
+    public TestCommand(MessageReceivedEvent event, String[] params) {
         User author = event.getAuthor();
         //event.getChannel().sendMessage("Empty test");
         /*DiscordApi api = new DiscordApi();
@@ -49,8 +49,6 @@ public class TestCommand {
 
         } catch (Exception exception) {
             exception.printStackTrace();
-        } finally {
-            //event.getChannel().sendMessage("TIME TOOK: " + (Calendar.getInstance().getTimeInMillis() - startTimestamp) + "ms");
         }
     }
 }

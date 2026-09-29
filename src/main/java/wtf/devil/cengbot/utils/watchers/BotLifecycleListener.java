@@ -2,11 +2,18 @@ package wtf.devil.cengbot.utils.watchers;
 
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import wtf.devil.cengbot.DevilsBot;
+import wtf.devil.cengbot.commands.dev.WooclapPullCommand;
+import wtf.devil.cengbot.commands.general.WooclapCommand;
+import wtf.devil.cengbot.commands.general.WooclapStatusCommand;
+import wtf.devil.cengbot.commands.general.WooclapTokenCommands;
 
 public class BotLifecycleListener extends ListenerAdapter {
 
@@ -15,6 +22,42 @@ public class BotLifecycleListener extends ListenerAdapter {
     @Override
     public void onReady(ReadyEvent event) {
         logger.info("Logged in as " + event.getJDA().getSelfUser().getName() + ", ready!");
+        event.getJDA().updateCommands()
+                .addCommands(WooclapCommand.SLASH_COMMAND)
+                .addCommands(WooclapCommand.DROP_SLASH_COMMAND)
+                .addCommands(WooclapStatusCommand.SLASH_COMMAND)
+                .addCommands(WooclapPullCommand.SLASH_COMMAND)
+                .addCommands(WooclapTokenCommands.SLASH_COMMANDS)
+                .queue();
+    }
+
+    @Override
+    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+        if (event.getName().equals(WooclapCommand.SLASH_NAME)) {
+            WooclapCommand.onSlashCommand(event);
+        } else if (event.getName().equals(WooclapCommand.DROP_SLASH_NAME)) {
+            WooclapCommand.onDropSlashCommand(event);
+        } else if (event.getName().equals(WooclapStatusCommand.SLASH_NAME)) {
+            WooclapStatusCommand.onSlashCommand(event);
+        } else if (event.getName().equals(WooclapPullCommand.SLASH_NAME)) {
+            WooclapPullCommand.onSlashCommand(event);
+        } else {
+            WooclapTokenCommands.onSlashCommand(event);
+        }
+    }
+
+    @Override
+    public void onButtonInteraction(ButtonInteractionEvent event) {
+        if (event.getComponentId().equals(WooclapCommand.TOKEN_BUTTON_ID)) {
+            WooclapCommand.onTokenButton(event);
+        }
+    }
+
+    @Override
+    public void onModalInteraction(ModalInteractionEvent event) {
+        if (event.getModalId().equals(WooclapCommand.TOKEN_MODAL_ID)) {
+            WooclapCommand.onTokenModal(event);
+        }
     }
 
     @Override

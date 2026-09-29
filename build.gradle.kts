@@ -34,11 +34,14 @@ dependencies {
     //implementation("io.lettuce:lettuce-core:7.2.1.RELEASE")
     // Logging
     implementation("org.apache.logging.log4j:log4j-api:2.25.3")
-    runtimeOnly("org.apache.logging.log4j:log4j-core:2.25.3")
+    implementation("org.apache.logging.log4j:log4j-core:2.25.4")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.22.1")
 
     // Wooclap
-    //implementation("tech.selwyn:wooclapper:1.0.9")
+    implementation("tech.selwyn:wooclapper:1.0.12") {
+        // Wooclapper ships slf4j-simple, which would steal its logs away from log4j (and the Discord log router)
+        exclude(group = "org.slf4j", module = "slf4j-simple")
+    }
 }
 
 application {

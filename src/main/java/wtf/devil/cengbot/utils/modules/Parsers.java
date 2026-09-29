@@ -1,9 +1,38 @@
 package wtf.devil.cengbot.utils.modules;
 
-import wtf.devil.cengbot.Constants;
-import wtf.devil.cengbot.utils.objects.commandTypes;
+import net.dv8tion.jda.api.entities.Mentions;
+import net.dv8tion.jda.api.entities.User;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Parsers {
+
+    private static final Pattern USER_ID_PATTERN = Pattern.compile("<@!?(\\d{17,20})>|\\b(\\d{17,20})\\b");
+
+    /*
+     * Finds the users named in text, by mention (<@id>) or raw user ID, in the order they appear.
+     * Bots found in the resolved mentions are left out.
+     */
+    public static Set<Long> parseUserIds(String text, Mentions mentions) {
+        Set<Long> bots = mentions.getUsers().stream()
+                .filter(User::isBot)
+                .map(User::getIdLong)
+                .collect(Collectors.toSet());
+
+        Set<Long> userIds = new LinkedHashSet<>();
+        Matcher matcher = USER_ID_PATTERN.matcher(text);
+        while (matcher.find()) {
+            long id = Long.parseLong(matcher.group(1) != null ? matcher.group(1) : matcher.group(2));
+            if (!bots.contains(id)) {
+                userIds.add(id);
+            }
+        }
+        return userIds;
+    }
 
     public static long parseStringToLong(String input) {
         try {
@@ -86,54 +115,5 @@ public class Parsers {
             return 0;
             //throw e;
         }
-    }
-
-    public static String parseStringToCommand(String commandAlias) {
-        // Returns command string from command alias
-        String command = "";
-
-        loop:
-        for (int i = 0; i < Constants.modules.length; i++) {
-            for (int j = 0; j < Constants.commands[i].length; j++) {
-                for (int k = 0; k < Constants.commands[i][j].length; k++) {
-                    if (commandAlias.toLowerCase().equals(Constants.commands[i][j][k])) {
-                        command = Constants.commands[i][j][0].toLowerCase();
-                        break loop;
-                    }
-                }
-            }
-        }
-
-        return command;
-    }
-
-    public static commandTypes parseStringToCommandModule(String command) {
-        // This function will not work with command aliases.
-        commandTypes commandModule = null;
-
-        loop:
-        for (int i = 0; i < Constants.modules.length; i++) {
-            for (int j = 0; j < Constants.commands[i].length; j++) {
-                if (command.toLowerCase().equals(Constants.commands[i][j][0])) {
-                    switch (i) {
-                        case 0:
-                            commandModule = commandTypes.CORE;
-                            break;
-                        case 1:
-                            commandModule = commandTypes.ECONOMY;
-                            break;
-                        case 2:
-                            commandModule = commandTypes.CALCULATORS;
-                            break;
-                        case 3:
-                            commandModule = commandTypes.DEV;
-                            break;
-                    }
-                    break loop;
-                }
-            }
-        }
-
-        return commandModule;
     }
 }

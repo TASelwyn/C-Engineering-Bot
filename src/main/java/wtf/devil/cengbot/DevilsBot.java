@@ -1,5 +1,6 @@
 package wtf.devil.cengbot;
 
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.exceptions.InvalidTokenException;
@@ -7,15 +8,15 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import tech.selwyn.wooclapper.Wooclapper;
 import wtf.devil.cengbot.utils.Config;
+import wtf.devil.cengbot.utils.modules.WooclapLogRouter;
 import wtf.devil.cengbot.utils.objects.BotConfig;
 import wtf.devil.cengbot.utils.watchers.BotLifecycleListener;
 import wtf.devil.cengbot.utils.watchers.CommandWatcher;
 
 import java.util.Calendar;
 import java.util.EnumSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static wtf.devil.cengbot.Constants.*;
 import static wtf.devil.cengbot.utils.database.DatabaseManager.databaseTestConnection;
@@ -24,9 +25,27 @@ public class DevilsBot {
 
     private static BotConfig config;
     private static Logger logger;
+    private static JDA jda;
 
-    private static final ExecutorService redisCallbackPool = Executors.newSingleThreadExecutor();
-    //private final Wooclapper wooclapper = new Wooclapper();
+    //private static final ExecutorService redisCallbackPool = Executors.newSingleThreadExecutor();
+
+    // Lazy holder so the Wooclapper (and its websocket/keepalive threads) only starts on first use
+    private static final class WooclapperHolder {
+        private static final Wooclapper INSTANCE;
+
+        static {
+            WooclapLogRouter.install();
+            INSTANCE = new Wooclapper();
+        }
+    }
+
+    public static Wooclapper getWooclapper() {
+        return WooclapperHolder.INSTANCE;
+    }
+
+    public static JDA getJda() {
+        return jda;
+    }
 
     static void main(String[] args) {
         setLogProperty();
@@ -51,10 +70,10 @@ public class DevilsBot {
         }
 
         try {
-            JDABuilder.create(discordToken, EnumSet.allOf(GatewayIntent.class))
+            jda = JDABuilder.create(discordToken, EnumSet.allOf(GatewayIntent.class))
                     .enableCache(CacheFlag.EMOJI)
                     .setActivity(Activity.streaming("c.help", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
-                    .addEventListeners(new CommandWatcher(), new BotLifecycleListener())
+                    .addEventListeners(new CommandWatcher(), new BotLifecycleListener(), WooclapLogRouter.channelActivityListener())
                     .build();
         } catch (InvalidTokenException e) {
             logger.error("Token supplied is invalid. Please enter a valid token in config.json");

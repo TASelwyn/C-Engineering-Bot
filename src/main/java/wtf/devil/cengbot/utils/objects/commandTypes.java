@@ -4,5 +4,6 @@ public enum commandTypes {
     CORE,
     ECONOMY,
     CALCULATORS,
-    DEV
+    DEV,
+    OWNER
 }
