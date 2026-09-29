@@ -3,15 +3,18 @@ package wtf.devil.cengbot.commands.general;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
-import wtf.devil.cengbot.utils.watchers.WooclapRevokeWatcher;
+import wtf.devil.cengbot.utils.modules.WooclapParticipants;
+import wtf.devil.cengbot.utils.modules.WooclapParticipants.Member;
 
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /*
- * Lists every Wooclap event the bot is answering, who's in each, and who's waiting to enter a token for one.
+ * Lists every Wooclap event the bot is answering, who's in each (grouped by priority, in answer order),
+ * and who's waiting to enter a token for one.
  */
 public class WooclapStatusCommand {
 
@@ -22,7 +25,7 @@ public class WooclapStatusCommand {
     private static final int DISCORD_LIMIT = 2000;
 
     public static void onSlashCommand(SlashCommandInteractionEvent event) {
-        Map<String, List<Long>> joined = WooclapRevokeWatcher.participantsByEvent();
+        Map<String, List<Member>> joined = WooclapParticipants.participantsByEvent();
         Map<String, List<Long>> pending = WooclapCommand.pendingByEvent();
 
         TreeSet<String> eventCodes = new TreeSet<>(joined.keySet());
@@ -35,12 +38,14 @@ public class WooclapStatusCommand {
 
         StringBuilder reply = new StringBuilder("**Wooclap status**");
         for (String eventCode : eventCodes) {
-            List<Long> in = joined.getOrDefault(eventCode, List.of());
+            List<Member> in = joined.getOrDefault(eventCode, List.of());
             List<Long> waiting = pending.getOrDefault(eventCode, List.of());
 
             reply.append("\n\n`").append(eventCode).append("` (").append(in.size()).append(" in)");
             if (!in.isEmpty()) {
-                reply.append("\nIn: ").append(mentions(in));
+                reply.append("\nIn, by priority (lower answers first):");
+                byPriority(in).forEach((priority, discordIDs) ->
+                        reply.append("\n`").append(priority).append("` ").append(mentions(discordIDs)));
             }
             if (!waiting.isEmpty()) {
                 reply.append("\nWaiting for a token: ").append(mentions(waiting));
@@ -56,6 +61,12 @@ public class WooclapStatusCommand {
                 // Lists users without pinging them
                 .setAllowedMentions(List.of())
                 .queue();
+    }
+
+    // Lowest priority first, matching the order Wooclapper answers in
+    private static Map<Integer, List<Long>> byPriority(List<Member> members) {
+        return members.stream().collect(Collectors.groupingBy(Member::priority, TreeMap::new,
+                Collectors.mapping(Member::discordID, Collectors.toList())));
     }
 
     private static String mentions(List<Long> discordIDs) {

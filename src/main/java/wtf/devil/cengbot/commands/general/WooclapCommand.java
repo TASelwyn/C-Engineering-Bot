@@ -28,10 +28,11 @@ import tech.selwyn.wooclapper.model.error.WooclapError;
 import wtf.devil.cengbot.DevilsBot;
 import wtf.devil.cengbot.commands.CommandManager;
 import wtf.devil.cengbot.utils.database.model.WooclapToken;
+import wtf.devil.cengbot.utils.database.repo.WooclapPriorityRepo;
 import wtf.devil.cengbot.utils.database.repo.WooclapTokenRepo;
 import wtf.devil.cengbot.utils.modules.Parsers;
 import wtf.devil.cengbot.utils.modules.WooclapLogRouter;
-import wtf.devil.cengbot.utils.watchers.WooclapRevokeWatcher;
+import wtf.devil.cengbot.utils.modules.WooclapParticipants;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -52,6 +53,7 @@ public class WooclapCommand {
 
     private static final Logger logger = LogManager.getLogger(WooclapCommand.class);
     private static final WooclapTokenRepo tokenRepo = new WooclapTokenRepo();
+    private static final WooclapPriorityRepo priorityRepo = new WooclapPriorityRepo();
 
     public static final String SLASH_NAME = "join";
     public static final String TOKEN_BUTTON_ID = "wooclap:enter-token";
@@ -210,7 +212,7 @@ public class WooclapCommand {
     public static DropStatus drop(long discordID, String eventCode) {
         boolean cancelled = pendingCodes.remove(discordID, eventCode);
 
-        Optional<Wooclap> wooclap = WooclapRevokeWatcher.untrack(discordID, eventCode);
+        Optional<Wooclap> wooclap = WooclapParticipants.untrack(discordID, eventCode);
         if (wooclap.isEmpty()) {
             return cancelled ? DropStatus.CANCELLED : DropStatus.NOT_IN;
         }
@@ -227,7 +229,7 @@ public class WooclapCommand {
         if (pending != null) {
             dropped.add(pending);
         }
-        for (String eventCode : WooclapRevokeWatcher.eventsFor(discordID)) {
+        for (String eventCode : WooclapParticipants.eventsFor(discordID)) {
             if (drop(discordID, eventCode) == DropStatus.DROPPED && !dropped.contains(eventCode)) {
                 dropped.add(eventCode);
             }
@@ -406,8 +408,16 @@ public class WooclapCommand {
             return new JoinResult(JoinStatus.FAILED, "Couldn't load Wooclap `" + eventCode + "`: " + e.getMessage());
         }
 
+        int priority;
         try {
-            wooclap.addParticipant(uuidFromDiscordID(discordID), authToken);
+            priority = priorityRepo.priorityFor(discordID);
+        } catch (PersistenceException e) {
+            logger.error("Failed to read Wooclap priority for {}", discordID, e);
+            return new JoinResult(JoinStatus.FAILED, "Couldn't look up your Wooclap priority, try again later.");
+        }
+
+        try {
+            wooclap.addParticipant(uuidFromDiscordID(discordID), authToken, priority);
         } catch (NeedsAuth e) {
             // Only a rejected token (or the wrong kind of account) is worth asking for a new one
             logger.warn("Wooclap {} rejected the token for {}: {}", eventCode, discordID, e.getMessage());
@@ -420,7 +430,7 @@ public class WooclapCommand {
         }
 
         pendingCodes.remove(discordID, eventCode);
-        WooclapRevokeWatcher.track(discordID, eventCode, uuidFromDiscordID(discordID), wooclap);
+        WooclapParticipants.track(discordID, eventCode, uuidFromDiscordID(discordID), wooclap);
         return new JoinResult(JoinStatus.JOINED, "Joined Wooclap `" + eventCode + "`.");
     }
 

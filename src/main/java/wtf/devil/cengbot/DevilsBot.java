@@ -15,6 +15,7 @@ import wtf.devil.cengbot.utils.modules.WooclapLogRouter;
 import wtf.devil.cengbot.utils.objects.BotConfig;
 import wtf.devil.cengbot.utils.watchers.BotLifecycleListener;
 import wtf.devil.cengbot.utils.watchers.CommandWatcher;
+import wtf.devil.cengbot.utils.watchers.WooclapRevokeWatcher;
 
 import java.util.Calendar;
 import java.util.EnumSet;
@@ -81,6 +82,7 @@ public class DevilsBot {
             System.exit(0);
         }
 
+        WooclapRevokeWatcher.start();
         logger.info("Bot successfully started.");
     }
 

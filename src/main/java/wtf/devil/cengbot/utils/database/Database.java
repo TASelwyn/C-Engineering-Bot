@@ -7,6 +7,7 @@ import org.hibernate.jpa.HibernatePersistenceConfiguration;
 import org.hibernate.tool.schema.Action;
 import wtf.devil.cengbot.DevilsBot;
 import wtf.devil.cengbot.utils.database.model.BotUser;
+import wtf.devil.cengbot.utils.database.model.WooclapPriority;
 import wtf.devil.cengbot.utils.database.model.WooclapToken;
 import wtf.devil.cengbot.utils.objects.BotConfig;
 
@@ -22,7 +23,7 @@ public final class Database {
     public static boolean connect(BotConfig config) {
         try {
             sessionFactory = new HibernatePersistenceConfiguration("cengbot")
-                    .managedClasses(BotUser.class, WooclapToken.class)
+                    .managedClasses(BotUser.class, WooclapToken.class, WooclapPriority.class)
                     .jdbcUrl(config.getDatabaseUrl())
                     .jdbcCredentials(config.getDatabaseUser(), config.getDatabasePassword())
                     // Creates missing tables/columns on startup, never drops anything

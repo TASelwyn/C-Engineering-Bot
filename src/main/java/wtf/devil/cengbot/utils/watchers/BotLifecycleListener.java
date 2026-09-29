@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import wtf.devil.cengbot.DevilsBot;
 import wtf.devil.cengbot.commands.dev.WooclapClearCommand;
+import wtf.devil.cengbot.commands.dev.WooclapPriorityCommand;
 import wtf.devil.cengbot.commands.dev.WooclapPullCommand;
 import wtf.devil.cengbot.commands.general.WooclapCommand;
 import wtf.devil.cengbot.commands.general.WooclapQuestionsCommand;
@@ -30,6 +31,7 @@ public class BotLifecycleListener extends ListenerAdapter {
                 .addCommands(WooclapStatusCommand.SLASH_COMMAND)
                 .addCommands(WooclapQuestionsCommand.SLASH_COMMAND)
                 .addCommands(WooclapPullCommand.SLASH_COMMAND)
+                .addCommands(WooclapPriorityCommand.SLASH_COMMAND)
                 .addCommands(WooclapTokenCommands.SLASH_COMMANDS)
                 .queue();
 
@@ -49,6 +51,8 @@ public class BotLifecycleListener extends ListenerAdapter {
             WooclapQuestionsCommand.onSlashCommand(event);
         } else if (event.getName().equals(WooclapPullCommand.SLASH_NAME)) {
             WooclapPullCommand.onSlashCommand(event);
+        } else if (event.getName().equals(WooclapPriorityCommand.SLASH_NAME)) {
+            WooclapPriorityCommand.onSlashCommand(event);
         } else {
             WooclapTokenCommands.onSlashCommand(event);
         }
