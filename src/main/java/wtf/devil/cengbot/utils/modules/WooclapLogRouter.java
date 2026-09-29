@@ -15,6 +15,7 @@ import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.config.Property;
+import org.jspecify.annotations.NonNull;
 import wtf.devil.cengbot.DevilsBot;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,7 +33,8 @@ import static wtf.devil.cengbot.Constants.wooclapLogChannelId;
 
 /**
  * Forwards everything Wooclapper logs into the Wooclap log channel.
- * Lines are buffered and flushed periodically so Discord rate limits aren't hit. Each flush edits the
+ * A line is flushed as soon as it's logged, but flushes are spaced at least MIN_FLUSH_INTERVAL_MS apart and
+ * anything logged in between is batched, so Discord rate limits aren't hit. Each flush edits the
  * bot's last log message, until someone else posts in the channel or it fills up, then a new one is started.
  */
 public final class WooclapLogRouter extends AbstractAppender {
@@ -40,17 +43,25 @@ public final class WooclapLogRouter extends AbstractAppender {
 
     private static final String WOOCLAPPER_LOGGER = "tech.selwyn.wooclapper";
     private static final int DISCORD_LIMIT = 2000;
-    private static final long FLUSH_INTERVAL_SECONDS = 3;
+    // Discord allows 5 message edits per 5 seconds per channel
+    private static final long MIN_FLUSH_INTERVAL_MS = 1000;
     private static final Pattern TOKEN_PATTERN = Pattern.compile("(?i)(auth ?token:?\\s*|bearer\\s+)\\S+");
 
     private static final WooclapLogRouter INSTANCE = new WooclapLogRouter();
 
     private final Set<String> knownTokens = ConcurrentHashMap.newKeySet();
     private final StringBuilder pending = new StringBuilder();
+    private final AtomicBoolean flushScheduled = new AtomicBoolean();
+    private final ScheduledExecutorService flusher = Executors.newSingleThreadScheduledExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "wooclap-log-flusher");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     // Only touched from the flusher thread
     private Message currentMessage;
     private String currentContent = "";
+    private volatile long lastFlushStart;
     // Set when someone else posts in the log channel, so the next flush starts a fresh message below theirs
     private volatile boolean newMessageNeeded = true;
 
@@ -75,19 +86,12 @@ public final class WooclapLogRouter extends AbstractAppender {
         loggerConfig.addAppender(INSTANCE, Level.INFO, null);
         config.addLogger(WOOCLAPPER_LOGGER, loggerConfig);
         context.updateLoggers();
-
-        ScheduledExecutorService flusher = Executors.newSingleThreadScheduledExecutor(runnable -> {
-            Thread thread = new Thread(runnable, "wooclap-log-flusher");
-            thread.setDaemon(true);
-            return thread;
-        });
-        flusher.scheduleAtFixedRate(INSTANCE::flush, FLUSH_INTERVAL_SECONDS, FLUSH_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
     public static ListenerAdapter channelActivityListener() {
         return new ListenerAdapter() {
             @Override
-            public void onMessageReceived(MessageReceivedEvent event) {
+            public void onMessageReceived(@NonNull MessageReceivedEvent event) {
                 if (event.getChannel().getIdLong() == wooclapLogChannelId && !event.getAuthor().equals(event.getJDA().getSelfUser())) {
                     INSTANCE.newMessageNeeded = true;
                 }
@@ -122,6 +126,15 @@ public final class WooclapLogRouter extends AbstractAppender {
                 pending.append('\n');
             }
         }
+        scheduleFlush();
+    }
+
+    // Flushes right away if the last flush was long enough ago, otherwise once the interval has passed
+    private void scheduleFlush() {
+        if (flushScheduled.compareAndSet(false, true)) {
+            long delay = Math.max(0, lastFlushStart + MIN_FLUSH_INTERVAL_MS - System.currentTimeMillis());
+            flusher.schedule(this::flush, delay, TimeUnit.MILLISECONDS);
+        }
     }
 
     private String format(LogEvent event) {
@@ -143,6 +156,10 @@ public final class WooclapLogRouter extends AbstractAppender {
     }
 
     private void flush() {
+        // Cleared before draining so lines logged during the send schedule the next flush
+        flushScheduled.set(false);
+        lastFlushStart = System.currentTimeMillis();
+
         String text;
         synchronized (pending) {
             if (pending.isEmpty()) {
