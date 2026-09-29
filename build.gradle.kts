@@ -44,7 +44,7 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.22.1")
 
     // Wooclap
-    implementation("tech.selwyn:wooclapper:1.0.17") {
+    implementation("tech.selwyn:wooclapper:1.0.18") {
         // Wooclapper ships slf4j-simple, which would steal its logs away from log4j (and the Discord log router)
         exclude(group = "org.slf4j", module = "slf4j-simple")
     }
