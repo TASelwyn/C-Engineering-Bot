@@ -18,6 +18,9 @@ import org.apache.logging.log4j.core.config.Property;
 import org.jspecify.annotations.NonNull;
 import wtf.devil.cengbot.DevilsBot;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -45,6 +48,8 @@ public final class WooclapLogRouter extends AbstractAppender {
     private static final int DISCORD_LIMIT = 2000;
     // Discord allows 5 message edits per 5 seconds per channel
     private static final long MIN_FLUSH_INTERVAL_MS = 1000;
+    // Bot host's local time; the code block stops Discord timestamps from rendering
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
     private static final Pattern TOKEN_PATTERN = Pattern.compile("(?i)(auth ?token:?\\s*|bearer\\s+)\\S+");
 
     private static final WooclapLogRouter INSTANCE = new WooclapLogRouter();
@@ -111,7 +116,7 @@ public final class WooclapLogRouter extends AbstractAppender {
 
     // Queues text for the log channel alongside Wooclapper's own output
     public static void post(String text) {
-        INSTANCE.queue(INSTANCE.scrub(text));
+        INSTANCE.queue(timestamp(Instant.now()) + INSTANCE.scrub(text));
     }
 
     @Override
@@ -145,7 +150,11 @@ public final class WooclapLogRouter extends AbstractAppender {
         if (event.getLevel().isMoreSpecificThan(Level.WARN)) {
             message = "[" + event.getLevel() + "] " + message;
         }
-        return scrub(message);
+        return timestamp(Instant.ofEpochMilli(event.getTimeMillis())) + scrub(message);
+    }
+
+    private static String timestamp(Instant time) {
+        return "[" + TIME_FORMAT.format(time) + "] ";
     }
 
     private String scrub(String message) {
