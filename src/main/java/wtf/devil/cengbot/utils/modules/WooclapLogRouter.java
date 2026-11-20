@@ -78,10 +78,10 @@ public final class WooclapLogRouter extends AbstractAppender {
         config.addAppender(INSTANCE);
 
         LoggerConfig loggerConfig = LoggerConfig.newBuilder()
-                .withLoggerName(WOOCLAPPER_LOGGER)
-                .withLevel(Level.INFO)
-                .withAdditivity(true)
-                .withConfig(config)
+                .setLoggerName(WOOCLAPPER_LOGGER)
+                .setLevel(Level.INFO)
+                .setAdditivity(true)
+                .setConfig(config)
                 .build();
         loggerConfig.addAppender(INSTANCE, Level.INFO, null);
         config.addLogger(WOOCLAPPER_LOGGER, loggerConfig);
